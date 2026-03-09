@@ -1,0 +1,28 @@
+FROM php:8.2-fpm
+
+ARG UID=1000
+ARG GID=1000
+
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    libzip-dev \
+    libonig-dev \
+    curl
+
+
+RUN docker-php-ext-install pdo_mysql zip mbstring
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+ENV PATH="$PATH:/root/.config/composer/vendor/bin"
+
+RUN groupadd -g $GID backend \
+    && useradd -u $UID -g backend -m backend
+
+USER backend
+
+WORKDIR /var/www/html
+
+CMD ["php-fpm"]
+

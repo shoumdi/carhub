@@ -1,0 +1,49 @@
+services:
+  backend:
+    build:
+      args:
+        UID: 1000
+        GID: 1000
+      dockerfile: ./docker/php/dockerfile
+    container_name: carhub_backend
+    depends_on:
+      - mysql
+    volumes:
+      - ./backend:/var/www/html
+    networks:
+     - carhub_backend
+
+  mysql:
+    image: mysql:8.1
+    container_name: database
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: user
+      MYSQL_DATABASE: car_hub
+      MYSQL_USER: user
+      MYSQL_PASSWORD: 1234
+    ports:
+      - '3306:3306'
+    volumes: 
+      - db_data:/var/lib/mysql
+    networks:
+      - carhub_backend
+  
+  myserver:
+    image: nginx:alpine
+    container_name: nginx_server
+    volumes: 
+      - ./backend:/var/www/html
+      - ./docker/dev/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports: 
+      - '8080:80'
+    depends_on:
+      - backend
+    networks:
+      - carhub_backend
+
+volumes:
+  db_data:
+networks:
+  carhub_backend:
+    
